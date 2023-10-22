@@ -1,5 +1,7 @@
 import math_cane as math
-
+from positionwise_feed_forward import PositionwiseFeedForward
+from decoder import Decoder
+from encoder import Encoder
 import numpy as np
 
 class Transformer:

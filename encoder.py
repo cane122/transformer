@@ -1,4 +1,5 @@
 import numpy as np
+from encoder_layer import EncoderLayer
 
 class Encoder:
     def __init__(self, num_layers, d_model, num_heads, d_ff, vocab_size, max_seq_length):
