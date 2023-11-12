@@ -1,6 +1,7 @@
 import numpy as np
-from multihead_attention import MultiHeadAttention
 from positionwise_feed_forward import PositionwiseFeedForward
+from layer_normalization import LayerNormalization
+from multihead_attention import MultiHeadAttention
 
 class EncoderLayer:
     def __init__(self, d_model, num_heads, d_ff):

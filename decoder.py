@@ -1,4 +1,8 @@
 import numpy as np
+from decoder_layer import DecoderLayer
+from token_embeding import TokenEmbedding
+from positional_encoding import PositionalEncoding
+from positionwise_feed_forward import PositionwiseFeedForward
 
 class Decoder:
     def __init__(self, num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length):

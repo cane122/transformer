@@ -1,4 +1,3 @@
-import math_cane as math
 from positionwise_feed_forward import PositionwiseFeedForward
 from decoder import Decoder
 from encoder import Encoder
@@ -14,7 +13,7 @@ class Transformer:
 
     def forward(self, source, target):
         # Forward pass through the encoder
-        encoder_output = self.encoder(source)
+        encoder_output = self.encoder.forward(source)
 
         # Forward pass through the decoder
         decoder_output = self.decoder(target, encoder_output)
