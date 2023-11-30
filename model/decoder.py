@@ -1,12 +1,12 @@
 import numpy as np
-from decoder_layer import DecoderLayer
-from token_embeding import TokenEmbedding
-from positional_encoding import PositionalEncoding
-from positionwise_feed_forward import PositionwiseFeedForward
+from elements.decoder_layer import DecoderLayer
+from embeding.token_embeding import TokenEmbedding
+from embeding.positional_encoding import PositionalEncoding
+from layers.positionwise_feed_forward import PositionwiseFeedForward
 
 class Decoder:
-    def __init__(self, num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length):
-        self.decoder_layers = [DecoderLayer(d_model, num_heads, d_ff) for _ in range(num_layers)]
+    def __init__(self, num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob):
+        self.decoder_layers = [DecoderLayer(d_model, num_heads, d_ff, drop_prob) for _ in range(num_layers)]
         self.embedding = TokenEmbedding(target_vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
         self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size)
@@ -18,9 +18,9 @@ class Decoder:
 
         # Forward pass through each decoder layer
         for decoder_layer in self.decoder_layers:
-            x = decoder_layer(x, encoder_output)
+            x = decoder_layer.forward(x, encoder_output)
 
         # Apply the final linear layer for output
-        output = self.final_linear(x)
+        output = self.final_linear.forward(x)
 
         return output
