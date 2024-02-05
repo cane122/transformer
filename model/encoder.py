@@ -16,6 +16,6 @@ class Encoder:
 
         # Forward pass through each encoder layer
         for encoder_layer in self.encoder_layers:
-            x = encoder_layer.forward(x)
+            x = encoder_layer(x)
 
         return x
