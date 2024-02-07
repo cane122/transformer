@@ -60,14 +60,14 @@ def main():
     transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
     transformer.to(device)
 
-    num_workers = 1  # You can adjust this based on your system's capabilities
+    num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     with open("training_set/cats.txt", 'r', encoding='utf-8') as file:
         lines = file.readlines()
     data = [line.strip() for line in lines]
     dataset = CustomDataset(data, tokenizer, max_seq_length)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=num_workers)
+    dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
 
     # Initialize your TokenEmbedding with the appropriate vocab_size and d_model
     token_embedding = TokenEmbedding(input_vocab_size, d_model)
@@ -97,8 +97,6 @@ def main():
             # Calculate Cross-Entropy Loss
             output_flattened = output.view(-1, output.size(-1))
             target_flattened = target.argmax(dim=-1)
-            print("Output shape:", output_flattened.shape)
-            print("Target shape:", target_flattened.shape)
 
             loss = F.cross_entropy(output_flattened, target_flattened)
 
@@ -121,6 +119,12 @@ def main():
 
     # Print the shape of the output
     print("Output shape:", output.shape)
+    # Save the model state dict
+    torch.save(transformer.state_dict(), 'transformer_weights.pth')
+    # Save the entire model
+    torch.save(transformer, 'transformer_model.pth')
+
+
 
 if __name__ == "__main__":
     main()
