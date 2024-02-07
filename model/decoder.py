@@ -18,7 +18,7 @@ class Decoder:
 
         # Forward pass through each decoder layer
         for decoder_layer in self.decoder_layers:
-            x = decoder_layer(x, encoder_output)
+            x = decoder_layer.forward(x, encoder_output)
 
         # Apply the final linear layer for output
         output = self.final_linear(x)

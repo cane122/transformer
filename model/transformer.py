@@ -16,15 +16,16 @@ class Transformer(nn.Module):
 
     def forward(self, source, target):
         # Forward pass through the encoder
-        encoder_output = self.encoder(source)
+        encoder_output = self.encoder.forward(source)
 
         # Forward pass through the decoder
-        decoder_output = self.decoder(target, encoder_output)
+        decoder_output = self.decoder.forward(target, encoder_output)
 
         # Apply the final linear layer to obtain output probabilities
-        output = self.final_linear(decoder_output)
+        output = self.final_linear.forward(decoder_output)
 
         return output
+
 
     def generate_text(self, start_token, end_token, max_length=50):
         # Initialize the input tensor with the start token
