@@ -6,13 +6,13 @@ from model.decoder import Decoder
 from model.encoder import Encoder
 
 class Transformer(nn.Module):
-    def __init__(self, num_layers, d_model, num_heads, d_ff, input_vocab_size, target_vocab_size, max_seq_length, drop_prob):
+    def __init__(self, num_layers, d_model, num_heads, d_ff, input_vocab_size, target_vocab_size, max_seq_length, drop_prob, device):
         super(Transformer, self).__init__()
         # Initialize hyperparameters and create necessary components
         self.num_layers = num_layers
-        self.encoder = Encoder(num_layers, d_model, num_heads, d_ff, input_vocab_size, max_seq_length, drop_prob)
-        self.decoder = Decoder(num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob)
-        self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size)
+        self.encoder = Encoder(num_layers, d_model, num_heads, d_ff, input_vocab_size, max_seq_length, drop_prob,device)
+        self.decoder = Decoder(num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob, device)
+        self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size, device)
 
     def forward(self, source, target):
         # Forward pass through the encoder

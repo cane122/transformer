@@ -52,22 +52,22 @@ def main():
     d_model = 128
     num_heads = 4
     d_ff = 256
-    input_vocab_size = 273992
+    input_vocab_size = 2500
     max_seq_length = 50
     drop_prob = 0.4
 
     # Initialize your Transformer model and move it to GPU if available
-    transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob)
+    transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
     transformer.to(device)
 
-    num_workers = 4  # You can adjust this based on your system's capabilities
+    num_workers = 1  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     with open("training_set/cats.txt", 'r', encoding='utf-8') as file:
         lines = file.readlines()
     data = [line.strip() for line in lines]
     dataset = CustomDataset(data, tokenizer, max_seq_length)
-    dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=num_workers)
 
     # Initialize your TokenEmbedding with the appropriate vocab_size and d_model
     token_embedding = TokenEmbedding(input_vocab_size, d_model)
@@ -95,7 +95,13 @@ def main():
             target = source_embeddings.view(-1, source_embeddings.size(-1))
 
             # Calculate Cross-Entropy Loss
-            loss = F.cross_entropy(output.view(-1, output.size(-1)), target.argmax(dim=-1))
+            output_flattened = output.view(-1, output.size(-1))
+            target_flattened = target.argmax(dim=-1)
+            print("Output shape:", output_flattened.shape)
+            print("Target shape:", target_flattened.shape)
+
+            loss = F.cross_entropy(output_flattened, target_flattened)
+
 
             # Backward pass and optimization
             optimizer.zero_grad()

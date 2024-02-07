@@ -1,7 +1,7 @@
 import torch
 
 class MultiHeadAttention(torch.nn.Module):
-    def __init__(self, d_model, num_heads):
+    def __init__(self, d_model, num_heads, device):
         super(MultiHeadAttention, self).__init__()
         self.num_heads = num_heads
         self.d_model = d_model
@@ -9,9 +9,11 @@ class MultiHeadAttention(torch.nn.Module):
         self.depth = d_model // num_heads
 
         # Weight matrices for linear transformations
-        self.wq = torch.nn.Parameter(torch.randn(d_model, d_model))
-        self.wk = torch.nn.Parameter(torch.randn(d_model, d_model))
-        self.wv = torch.nn.Parameter(torch.randn(d_model, d_model))
+        self.wq = torch.nn.Parameter(torch.randn(d_model, d_model)).to(device)
+        self.wk = torch.nn.Parameter(torch.randn(d_model, d_model)).to(device)
+        self.wv = torch.nn.Parameter(torch.randn(d_model, d_model)).to(device)
+
+        self.device = device
 
     def split_heads(self, x):
         # Reshape input to split into multiple heads
@@ -19,18 +21,19 @@ class MultiHeadAttention(torch.nn.Module):
         return x.permute(0, 2, 1, 3)
 
     def forward(self, q, k, v):
+        # Move inputs to the same device as the parameters
+        q, k, v = q.to(self.device), k.to(self.device), v.to(self.device)
+
         # Linear transformations for queries, keys, and values
         q = torch.matmul(q, self.wq)
         k = torch.matmul(k, self.wk)
         v = torch.matmul(v, self.wv)
 
         # Split into multiple heads
-        q = self.split_heads(q)
-        k = self.split_heads(k)
-        v = self.split_heads(v)
+        q, k, v = self.split_heads(q), self.split_heads(k), self.split_heads(v)
 
         # Scaled Dot-Product Attention
-        scaled_scores = torch.matmul(q, k.permute(0, 1, 3, 2)) / torch.sqrt(torch.tensor(self.depth).float())
+        scaled_scores = torch.matmul(q, k.permute(0, 1, 3, 2)) / torch.sqrt(torch.tensor(self.depth, device=self.device).float())
         attention_weights = torch.nn.functional.softmax(scaled_scores, dim=-1)
         attention_output = torch.matmul(attention_weights, v)
 

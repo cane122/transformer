@@ -5,11 +5,11 @@ from embeding.positional_encoding import PositionalEncoding
 from layers.positionwise_feed_forward import PositionwiseFeedForward
 
 class Decoder:
-    def __init__(self, num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob):
-        self.decoder_layers = [DecoderLayer(d_model, num_heads, d_ff, drop_prob) for _ in range(num_layers)]
+    def __init__(self, num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob, device):
+        self.decoder_layers = [DecoderLayer(d_model, num_heads, d_ff, drop_prob, device) for _ in range(num_layers)]
         self.embedding = TokenEmbedding(target_vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
-        self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size)
+        self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size, device)
 
     def forward(self, target, encoder_output):
         # Apply token embedding and positional encoding
@@ -23,4 +23,4 @@ class Decoder:
         # Apply the final linear layer for output
         output = self.final_linear(x)
 
-        return output
+        return output.to(target.device)
