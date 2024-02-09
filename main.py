@@ -79,9 +79,9 @@ def tokenize_and_pad(tokens, embedding_layer):
 
 def main():
     # Define hyperparameters and model parameters
-    num_layers = 2
+    num_layers = 4
     d_model = 128
-    num_heads = 4
+    num_heads = 8
     d_ff = 256
     drop_prob = 0.4
     num_workers = 8  # You can adjust this based on your system's capabilities
@@ -108,7 +108,7 @@ def main():
     optimizer = Adam(transformer.parameters(), lr=0.001)
 
     # Training loop
-    num_epochs = 100  # Adjust as needed
+    num_epochs = 150  # Adjust as needed
     for epoch in range(num_epochs):
         total_loss = 0.0
         for batch in dataloader:
@@ -130,10 +130,8 @@ def main():
             # Calculate Cross-Entropy Loss
             output_flattened = output.view(-1, output.size(-1))
             target_flattened = target.argmax(dim=-1)
-
+            
             loss = F.cross_entropy(output_flattened, target_flattened)
-
-
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -145,11 +143,6 @@ def main():
         average_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {average_loss}")
 
-    print("Output shape:", output.shape)
-    # Save the model state dict
-    torch.save(transformer.state_dict(), 'transformer_weights.pth')
-    # Save the entire model
-    torch.save(transformer, 'transformer_model.pth')
     # Convert start and end tokens to their corresponding indices using vocabulary mapping
     start_token_index = vocabulary['<s>']  # Replace '<s>' with your actual start token
     end_token_index = vocabulary['</s>']  # Replace '</s>' with your actual end token
@@ -158,11 +151,8 @@ def main():
         return inverse_vocabulary   
     vocab_invers = create_inverse_vocabulary(vocabulary)
     # Generate text
-    generated_text = transformer.generate_text(start_token_index, end_token_index, vocab_invers, max_length=50)
+    generated_text = transformer.generate_text("Cat",start_token_index, end_token_index, vocabulary, vocab_invers, max_length=50)
     print("Generated Text:", generated_text)
-
-    # Print the shape of the output
-    print("Output shape:", output.shape)
     # Save the model state dict
     torch.save(transformer.state_dict(), 'transformer_weights.pth')
     # Save the entire model

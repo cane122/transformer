@@ -34,5 +34,9 @@ class PositionalEncoding(nn.Module):
             # trim the input sequence length to match the maximum sequence length in encoding
             seq_len = max_seq_len
             x = x[:, :seq_len, :]  # Trim input tensor to match the maximum sequence length
+        
+        # Add positional encoding to the input tensor
+        positional_encoding = self.encoding[:seq_len, :].unsqueeze(0).expand(batch_size, -1, -1)
+        x_with_pos_encoding = x + positional_encoding
 
-        return x
+        return x_with_pos_encoding

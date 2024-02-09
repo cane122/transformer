@@ -12,8 +12,8 @@ class Encoder:
     def forward(self, source):
         # Apply token embedding
         x = self.embedding(source)
+        
         # Apply positional encoding
-
         x = self.positional_encoding(x)
 
         # Forward pass through each encoder layer
