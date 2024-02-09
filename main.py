@@ -83,7 +83,7 @@ def main():
     d_model = 128
     num_heads = 8
     d_ff = 256
-    drop_prob = 0.4
+    drop_prob = 0
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
@@ -108,7 +108,7 @@ def main():
     optimizer = Adam(transformer.parameters(), lr=0.001)
 
     # Training loop
-    num_epochs = 150  # Adjust as needed
+    num_epochs = 50  # Adjust as needed
     for epoch in range(num_epochs):
         total_loss = 0.0
         for batch in dataloader:
@@ -151,7 +151,7 @@ def main():
         return inverse_vocabulary   
     vocab_invers = create_inverse_vocabulary(vocabulary)
     # Generate text
-    generated_text = transformer.generate_text("Cat",start_token_index, end_token_index, vocabulary, vocab_invers, max_length=50)
+    generated_text = transformer.generate_text("</s> Cat",start_token_index, end_token_index, vocabulary, vocab_invers, max_length=50)
     print("Generated Text:", generated_text)
     # Save the model state dict
     torch.save(transformer.state_dict(), 'transformer_weights.pth')
