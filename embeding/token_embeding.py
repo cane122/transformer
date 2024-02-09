@@ -10,6 +10,7 @@ class TokenEmbedding(nn.Module):
     def forward(self, x):
         device = next(self.embedding.parameters()).device
         x = x.to(device)
+        
         # Embed tokens and reshape to (batch_size, sequence_length, embed_size)
         embedded_tokens = self.embedding(x)
 
