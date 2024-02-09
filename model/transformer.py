@@ -1,6 +1,7 @@
 import torch
 from torch.nn import functional as F
 import torch.nn as nn
+from embeding.token_embeding import TokenEmbedding
 from layers.positionwise_feed_forward import PositionwiseFeedForward
 from model.decoder import Decoder
 from model.encoder import Encoder
@@ -13,6 +14,8 @@ class Transformer(nn.Module):
         self.encoder = Encoder(num_layers, d_model, num_heads, d_ff, input_vocab_size, max_seq_length, drop_prob,device)
         self.decoder = Decoder(num_layers, d_model, num_heads, d_ff, target_vocab_size, max_seq_length, drop_prob, device)
         self.final_linear = PositionwiseFeedForward(d_model, target_vocab_size, device)
+        self.token_embedding = TokenEmbedding(input_vocab_size, d_model)
+        self.device = device
 
     def forward(self, source, target):
         # Forward pass through the encoder
@@ -27,26 +30,33 @@ class Transformer(nn.Module):
         return output
 
 
-    def generate_text(self, start_token, end_token, max_length=50):
-        # Initialize the input tensor with the start token
-        input_tensor = torch.tensor([[start_token]])
+    def generate_text(self,prompt, start_token_index, end_token_index, vocabulary, inverse_vocabulary, max_length=50):
+        """
+        Generate text using the Transformer model.
+        """
+        input_tokens = [vocabulary[token] for token in prompt.split()]  # Tokenize the prompt
+        input_indexes = [vocabulary[token] for token in prompt.split()]  # Convert tokens to indexes
 
-        for _ in range(max_length):
-            # Forward pass through the model
-            with torch.no_grad():
-                output_probs = self.forward(input_tensor, input_tensor)
+        input_tensor = torch.tensor([input_indexes], device=self.device)  # Initialize input tensor with prompt
+        generated_text = input_tokens[:]  # Initialize list to store generated tokens
 
-            # Sample the next token from the output probabilities
-            next_token = torch.multinomial(F.softmax(output_probs[0, -1, :], dim=-1), 1)
 
-            # Append the next token to the input for the next iteration
-            input_tensor = torch.cat([input_tensor, next_token.unsqueeze(0).unsqueeze(0)], dim=1)
+        with torch.no_grad():  # Disable gradient tracking during inference
+            for _ in range(max_length-2):
+                output = self.forward(input_tensor, input_tensor)  # Forward pass to generate output probabilities
 
-            # If the generated token is an end token, stop generation
-            if next_token == end_token:
-                break
+                next_token_index = output.argmax(dim=-1)[-1][-1].unsqueeze(0)  # Get index of the last token with maximum probability
 
-        # Convert the generated tensor to a list of tokens
-        generated_text = input_tensor.squeeze().tolist()
+                generated_text.append(next_token_index.item())  # Append generated token to the list
+
+                if next_token_index.item() == end_token_index:  # Compare with scalar value
+                    break  # End generation if end token is generated
+
+                input_tensor = torch.cat([input_tensor, next_token_index.unsqueeze(-1)], dim=-1)  # Concatenate new token to input tensor
+        # Convert token indexes to text
+        generated_text = [inverse_vocabulary[token_index] for token_index in generated_text]
+
+        # Join the tokens to form the generated text
+        generated_text = ' '.join(generated_text)
 
         return generated_text

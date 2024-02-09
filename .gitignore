@@ -3,3 +3,5 @@
 
 # Exclude the folder itself if you don't want to track it
 !5/
+transformer_model.pth
+transformer_weights.pth

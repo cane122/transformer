@@ -10,8 +10,10 @@ class Encoder:
         self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
 
     def forward(self, source):
-        # Apply token embedding and positional encoding
+        # Apply token embedding
         x = self.embedding(source)
+        
+        # Apply positional encoding
         x = self.positional_encoding(x)
 
         # Forward pass through each encoder layer
