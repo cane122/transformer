@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 import torch.nn.functional as F
+from collections import Counter
 from model.transformer import Transformer
 from embeding.token_embeding import TokenEmbedding
 
@@ -17,28 +18,57 @@ def simple_tokenizer(text):
     return text.split()
 
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, data, tokenizer, max_seq_length):
+    def __init__(self, data, tokenizer, max_seq_length, start_token, end_token, vocabulary):
         self.data = data
         self.tokenizer = tokenizer
         self.max_seq_length = max_seq_length
-
+        self.start_token = start_token
+        self.end_token = end_token
+        self.vocab = vocabulary  # Assign the vocabulary to the dataset
+    
     def __len__(self):
         return len(self.data)
-
+    
     def __getitem__(self, index):
-        # Assuming each line in the text file is a separate data point
         data_point = self.data[index]
-
-        # Tokenize the sequence of words
         tokens = self.tokenizer(data_point)
+        
+        # Convert tokens to indices using vocabulary
+        indexed_tokens = [self.vocab.get(token, self.vocab['<unk>']) for token in tokens]
+        
+        # Pad or truncate to max_seq_length
+        indexed_tokens = indexed_tokens[:self.max_seq_length] + [self.vocab['<pad>']] * (self.max_seq_length - len(indexed_tokens))
+        
+        return indexed_tokens
 
-        # Truncate or pad the tokens to the max_seq_length
-        if len(tokens) > self.max_seq_length:
-            tokens = tokens[:self.max_seq_length]
-        else:
-            tokens = tokens + ['<pad>'] * (self.max_seq_length - len(tokens))
 
-        return tokens
+from collections import Counter
+
+# Function to create vocabulary from dataset
+def create_vocabulary(data, tokenizer, start_token='<s>', end_token='</s>', unk_token='<unk>', pad_token='<pad>'):
+    # Initialize a Counter to count token frequencies
+    token_counter = Counter()
+    
+    # Iterate over the data to tokenize and count tokens
+    for sample in data:
+        tokens = tokenizer(sample)
+        token_counter.update(tokens)
+    
+    # Ensure that special tokens are in the counter
+    special_tokens = [unk_token, pad_token]
+    for token in special_tokens:
+        if token not in token_counter:
+            token_counter[token] = 0
+    
+    # Create a vocabulary dictionary with indices assigned to tokens
+    vocabulary = {start_token: 0, end_token: 1}  # Assign indices to start and end tokens
+    index = 2  # Start index for tokens
+    for token, count in token_counter.items():
+        vocabulary[token] = index
+        index += 1
+    
+    return vocabulary
+
 
 def tokenize_and_pad(tokens, embedding_layer):
     # Convert tokens to embeddings using your embedding layer
@@ -63,11 +93,21 @@ def main():
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
+    start_token = '<s>'
+    end_token = '</s>'
     with open("training_set/cats.txt", 'r', encoding='utf-8') as file:
         lines = file.readlines()
     data = [line.strip() for line in lines]
-    dataset = CustomDataset(data, tokenizer, max_seq_length)
+    vocabulary = create_vocabulary(data, tokenizer)
+    dataset = CustomDataset(data, tokenizer, max_seq_length, start_token, end_token, vocabulary)
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
+ 
+
+    # Print vocabulary size and some examples
+    print("Vocabulary size:", len(vocabulary))
+    print("Some tokens in vocabulary:")
+    for token, index in list(vocabulary.items())[:5]:
+        print(f"Token: {token}, Index: {index}")
 
     # Initialize your TokenEmbedding with the appropriate vocab_size and d_model
     token_embedding = TokenEmbedding(input_vocab_size, d_model)
@@ -76,7 +116,7 @@ def main():
     optimizer = Adam(transformer.parameters(), lr=0.001)
 
     # Training loop
-    num_epochs = 10  # Adjust as needed
+    num_epochs = 3  # Adjust as needed
     for epoch in range(num_epochs):
         total_loss = 0.0
         for batch in dataloader:
@@ -111,10 +151,13 @@ def main():
         average_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {average_loss}")
 
-    # Generate some text
-    start_token = '<s>'
-    end_token = '</s>'
-    generated_text = transformer.generate_text(start_token, end_token, max_length=50)
+
+    # Convert start and end tokens to their corresponding indices using vocabulary mapping
+    start_token_index = vocabulary['<s>']  # Replace '<s>' with your actual start token
+    end_token_index = vocabulary['</s>']  # Replace '</s>' with your actual end token
+
+    # Generate text
+    generated_text = transformer.generate_text(start_token_index, end_token_index, vocabulary, max_length=50)
     print("Generated Text:", generated_text)
 
     # Print the shape of the output
