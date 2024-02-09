@@ -79,12 +79,12 @@ def tokenize_and_pad(tokens, embedding_layer):
 
 def main():
     # Define hyperparameters and model parameters
-    num_layers = 4
+    num_layers = 6
     d_model = 128
     num_heads = 8
     d_ff = 256
-    drop_prob = 0
-    num_workers = 8  # You can adjust this based on your system's capabilities
+    drop_prob = 0.01
+    num_workers = 64  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     start_token = '<s>'
@@ -108,7 +108,7 @@ def main():
     optimizer = Adam(transformer.parameters(), lr=0.001)
 
     # Training loop
-    num_epochs = 50  # Adjust as needed
+    num_epochs = 50000  # Adjust as needed
     for epoch in range(num_epochs):
         total_loss = 0.0
         for batch in dataloader:
