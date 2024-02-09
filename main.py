@@ -39,7 +39,8 @@ class CustomDataset(torch.utils.data.Dataset):
         # Pad or truncate to max_seq_length
         indexed_tokens = indexed_tokens[:self.max_seq_length] + [self.vocab['<pad>']] * (self.max_seq_length - len(indexed_tokens))
         
-        return indexed_tokens
+        return torch.tensor(indexed_tokens, dtype=torch.long)  # Convert tokens to integer tensor
+
 
 
 from collections import Counter
@@ -82,41 +83,32 @@ def main():
     d_model = 128
     num_heads = 4
     d_ff = 256
-    input_vocab_size = 2500
-    max_seq_length = 50
     drop_prob = 0.4
-
-    # Initialize your Transformer model and move it to GPU if available
-    transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
-    transformer.to(device)
-
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     start_token = '<s>'
     end_token = '</s>'
+    max_seq_length = 50
     with open("training_set/cats.txt", 'r', encoding='utf-8') as file:
         lines = file.readlines()
     data = [line.strip() for line in lines]
     vocabulary = create_vocabulary(data, tokenizer)
+    input_vocab_size = len(vocabulary)
     dataset = CustomDataset(data, tokenizer, max_seq_length, start_token, end_token, vocabulary)
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
- 
 
-    # Print vocabulary size and some examples
-    print("Vocabulary size:", len(vocabulary))
-    print("Some tokens in vocabulary:")
-    for token, index in list(vocabulary.items())[:5]:
-        print(f"Token: {token}, Index: {index}")
+    # Initialize your Transformer model and move it to GPU if available
+    transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
+    transformer.to(device)
 
     # Initialize your TokenEmbedding with the appropriate vocab_size and d_model
     token_embedding = TokenEmbedding(input_vocab_size, d_model)
-
     # Define the Adam optimizer
     optimizer = Adam(transformer.parameters(), lr=0.001)
 
     # Training loop
-    num_epochs = 3  # Adjust as needed
+    num_epochs = 100  # Adjust as needed
     for epoch in range(num_epochs):
         total_loss = 0.0
         for batch in dataloader:
@@ -129,8 +121,9 @@ def main():
             source_embeddings = source_embeddings.to(device)
 
             # Forward pass
-            output = transformer.forward(source_embeddings, source_embeddings)  # Target is same as input for language modeling
+            output = transformer.forward(source_tokens, source_tokens)  # Target is same as input for language modeling
 
+            # Reshape the target to match the shape expected by CrossEntropyLoss
             # Reshape the target to match the shape expected by CrossEntropyLoss
             target = source_embeddings.view(-1, source_embeddings.size(-1))
 
@@ -139,6 +132,7 @@ def main():
             target_flattened = target.argmax(dim=-1)
 
             loss = F.cross_entropy(output_flattened, target_flattened)
+
 
 
             # Backward pass and optimization
@@ -151,13 +145,20 @@ def main():
         average_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {average_loss}")
 
-
+    print("Output shape:", output.shape)
+    # Save the model state dict
+    torch.save(transformer.state_dict(), 'transformer_weights.pth')
+    # Save the entire model
+    torch.save(transformer, 'transformer_model.pth')
     # Convert start and end tokens to their corresponding indices using vocabulary mapping
     start_token_index = vocabulary['<s>']  # Replace '<s>' with your actual start token
     end_token_index = vocabulary['</s>']  # Replace '</s>' with your actual end token
-
+    def create_inverse_vocabulary(vocabulary):
+        inverse_vocabulary = {value: key for key, value in vocabulary.items()}
+        return inverse_vocabulary   
+    vocab_invers = create_inverse_vocabulary(vocabulary)
     # Generate text
-    generated_text = transformer.generate_text(start_token_index, end_token_index, vocabulary, max_length=50)
+    generated_text = transformer.generate_text(start_token_index, end_token_index, vocab_invers, max_length=50)
     print("Generated Text:", generated_text)
 
     # Print the shape of the output

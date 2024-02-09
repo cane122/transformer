@@ -38,23 +38,17 @@ class Transformer(nn.Module):
         generated_text = [start_token_index]  # Initialize list to store generated tokens
 
         with torch.no_grad():  # Disable gradient tracking during inference
-            for _ in range(max_length):
+            for _ in range(max_length-2):
                 output = self.forward(input_tensor, input_tensor)  # Forward pass to generate output probabilities
 
                 next_token_index = output.argmax(dim=-1)[-1][-1].unsqueeze(0)  # Get index of the last token with maximum probability
-
-                # Check if the next token index is within the vocabulary
-                if next_token_index.item() not in vocabulary:
-                    break  # End generation if the token index is not in the vocabulary
                 
-
                 generated_text.append(next_token_index.item())  # Append generated token to the list
 
                 if next_token_index.item() == end_token_index:  # Compare with scalar value
                     break  # End generation if end token is generated
 
                 input_tensor = torch.cat([input_tensor, next_token_index.unsqueeze(-1)], dim=-1)  # Concatenate new token to input tensor
-
         # Convert token indexes to text
         generated_text = [vocabulary[token_index] for token_index in generated_text]
 

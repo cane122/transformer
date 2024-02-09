@@ -20,13 +20,19 @@ class PositionalEncoding(nn.Module):
         return encoding
 
     def forward(self, x):
-    # self.encoding
-    # [max_len = 512, d_model = 512]
-
         # self.encoding
         # [max_len = 512, d_model = 512]
 
-        batch_size, seq_len = x.size()
-        # [batch_size = 128, seq_len = 30]
+        batch_size, seq_len, embedding_dim = x.size()
+        # [batch_size = 64, seq_len = 50, embedding_dim = 128]
 
-        return self.encoding[:seq_len, :]
+        max_seq_len = self.encoding.size(0)  # Get the maximum sequence length from encoding
+
+        # Handle cases where the input sequence length exceeds the maximum sequence length in the encoding
+        if seq_len > max_seq_len:
+            # If the input sequence length is greater than the maximum sequence length in encoding,
+            # trim the input sequence length to match the maximum sequence length in encoding
+            seq_len = max_seq_len
+            x = x[:, :seq_len, :]  # Trim input tensor to match the maximum sequence length
+
+        return x
