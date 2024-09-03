@@ -55,7 +55,7 @@ The data should be in plain text format, with each line representing a separate 
 To train the model, execute the main() function from the command line:
 
     
-bash
+    ```bash
     python main.py
 
 The script will load the dataset, tokenize the text, and train the Transformer model using the specified hyperparameters.
@@ -70,24 +70,24 @@ The dataset should be in a simple text file format.
 There are example files in training_set that can be used.
 
 ## Training
--Hyperparameters are all in main.py file
--Number of Layers: 6
--Model Dimension (d_model): 128
--Number of Attention Heads: 8
--Feed Forward Dimension (d_ff): 256
--Dropout Probability: 0.01
--Max Sequence Length: 50
--Batch Size: 64
--Learning Rate: 0.001
--Number of Epochs: 50,000 (adjust as needed)
+Hyperparameters are all in main.py file\
+Number of Layers: 6\
+Model Dimension (d_model): 128\
+Number of Attention Heads: 8\
+Feed Forward Dimension (d_ff): 256\
+Dropout Probability: 0.01\
+Max Sequence Length: 50\
+Batch Size: 64\
+Learning Rate: 0.001\
+Number of Epochs: 50,000 (adjust as needed)\
 
 ## Model Structure
 The Transformer model includes:
 
--Token Embedding Layer: Converts tokens into dense vectors.
--Multi-Head Self-Attention: Captures dependencies between tokens.
--Feed-Forward Neural Networks: Applied position-wise to each token embedding.
--Positional Encoding: Adds information about the position of tokens in the sequence.
+Token Embedding Layer: Converts tokens into dense vectors.\
+Multi-Head Self-Attention: Captures dependencies between tokens.\
+Feed-Forward Neural Networks: Applied position-wise to each token embedding.\
+Positional Encoding: Adds information about the position of tokens in the sequence.\
 
 ## Results
 After training, the model repeats most common word, conclusion needs more training.
