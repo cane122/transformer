@@ -66,12 +66,7 @@ After training, the model is saved as transformer_weights.pth (state dict) and t
 The model can generate text sequences based on input prompts. Customize the generate_text() function call in the script to generate and print the output.
 
 ## Dataset
-The dataset should be in a simple text file format. Each line of the file represents a new training example:
-
-Line 1: This is the first example sentence.
-Line 2: Another sentence goes here.
-...
-
+The dataset should be in a simple text file format.
 There are example files in training_set that can be used.
 
 ## Training
@@ -85,16 +80,14 @@ There are example files in training_set that can be used.
 -Batch Size: 64
 -Learning Rate: 0.001
 -Number of Epochs: 50,000 (adjust as needed)
+
 ## Model Structure
 The Transformer model includes:
 
-Token Embedding Layer: Converts tokens into dense vectors.
-Multi-Head Self-Attention: Captures dependencies between tokens.
-Feed-Forward Neural Networks: Applied position-wise to each token embedding.
-Positional Encoding: Adds information about the position of tokens in the sequence.
-Results
-After training, the model can generate coherent text sequences based on provided prompts. Example outputs can be tested using the generate_text() function, where the input prompt can be customized.
-links not working
+-Token Embedding Layer: Converts tokens into dense vectors.
+-Multi-Head Self-Attention: Captures dependencies between tokens.
+-Feed-Forward Neural Networks: Applied position-wise to each token embedding.
+-Positional Encoding: Adds information about the position of tokens in the sequence.
 
 ## Results
 After training, the model repeats most common word, conclusion needs more training.
