@@ -32,14 +32,14 @@ To get started with this project, you need to have Python 3.8 or higher installe
 1. **Clone the Repository**:
 
    
-bash
+   ```bash
    git clone https://github.com/cane122/transformer.git
    cd transformer
 
 
 2. **Install Dependencies**:
     
-bash
+    ```bash
     pip install torch numpy
 
     
