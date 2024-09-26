@@ -20,7 +20,7 @@ class MultiHeadAttention(torch.nn.Module):
         x = x.view(x.size(0), -1, self.num_heads, self.depth)
         return x.permute(0, 2, 1, 3)
 
-    def forward(self, q, k, v):
+    def forward(self, q, k, v, mask=None):
         # Move inputs to the same device as the parameters
         q, k, v = q.to(self.device), k.to(self.device), v.to(self.device)
 
@@ -34,6 +34,11 @@ class MultiHeadAttention(torch.nn.Module):
 
         # Scaled Dot-Product Attention
         scaled_scores = torch.matmul(q, k.permute(0, 1, 3, 2)) / torch.sqrt(torch.tensor(self.depth, device=self.device).float())
+
+        # Apply the mask (optional)
+        if mask is not None:
+            scaled_scores = scaled_scores.masked_fill(mask == 0, float('-inf'))
+
         attention_weights = torch.nn.functional.softmax(scaled_scores, dim=-1)
         attention_output = torch.matmul(attention_weights, v)
 

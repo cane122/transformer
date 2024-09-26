@@ -6,13 +6,6 @@ from collections import Counter
 from model.transformer import Transformer
 from embeding.token_embeding import TokenEmbedding
 
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-    print(f"GPU is available. Using GPU: {torch.cuda.get_device_name(0)}")
-else:
-    device = torch.device("cpu")
-    print("GPU not available. Using CPU.")
-
 # Assuming you are using a simple whitespace-based tokenizer for illustration purposes
 def simple_tokenizer(text):
     return text.split()
@@ -78,13 +71,20 @@ def tokenize_and_pad(tokens, embedding_layer):
     return embeddings
 
 def main():
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"GPU is available. Using GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        device = torch.device("cpu")
+        print("GPU not available. Using CPU.")
+
     # Define hyperparameters and model parameters
     num_layers = 6
     d_model = 128
     num_heads = 8
     d_ff = 256
     drop_prob = 0.01
-    num_workers = 64  # You can adjust this based on your system's capabilities
+    num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     start_token = '<s>'
