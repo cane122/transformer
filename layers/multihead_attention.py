@@ -37,9 +37,15 @@ class MultiHeadAttention(torch.nn.Module):
 
         # Apply the mask (optional)
         if mask is not None:
-            scaled_scores = scaled_scores.masked_fill(mask == 0, float('-inf'))
+            scaled_scores = scaled_scores.masked_fill(mask == False, -1e9)  # Use -1e9 instead of -inf
 
+        # For numerical stability: subtract max value from scaled_scores
+        scaled_scores = scaled_scores - scaled_scores.max(dim=-1, keepdim=True)[0]
+
+        # Softmax along the last axis
         attention_weights = torch.nn.functional.softmax(scaled_scores, dim=-1)
+
+        # Apply attention weights to the values
         attention_output = torch.matmul(attention_weights, v)
 
         # Combine multiple heads
@@ -47,3 +53,4 @@ class MultiHeadAttention(torch.nn.Module):
         attention_output = attention_output.reshape(attention_output.size(0), -1, self.d_model)
 
         return attention_output
+

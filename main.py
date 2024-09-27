@@ -130,7 +130,7 @@ def main():
             # Calculate Cross-Entropy Loss
             output_flattened = output.view(-1, output.size(-1))
             target_flattened = target.argmax(dim=-1)
-            
+
             loss = F.cross_entropy(output_flattened, target_flattened)
 
             # Backward pass and optimization
