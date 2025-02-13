@@ -2,7 +2,7 @@ import torch
 from llama8b.pipeline import pipe
 from torch import nn
 from model.transformer import Transformer
-from embedding.token_embedding import TokenEmbedding
+from embeding.token_embeding import TokenEmbedding
 from torch.nn.functional import softmax
 
 # Special tokens configuration (same as training time)

@@ -1,7 +1,7 @@
 import numpy as np
 from elements.decoder_layer import DecoderLayer
-from embedding.token_embedding import TokenEmbedding
-from embedding.positional_encoding import PositionalEncoding
+from embeding.token_embeding import TokenEmbedding
+from embeding.positional_encoding import PositionalEncoding
 from layers.positionwise_feed_forward import PositionwiseFeedForward
 
 class Decoder:
@@ -13,7 +13,7 @@ class Decoder:
 
     def forward(self, target, encoder_output):
         # Apply token embedding and positional encoding
-        x = self.embedding(target)
+        x = target
         x = self.positional_encoding(x)
 
         # Forward pass through each decoder layer

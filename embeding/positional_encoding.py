@@ -4,8 +4,9 @@ import torch.nn.functional as F
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len=512):
-        super(PositionalEncoding, self).__init__()
-        self.encoding = self.create_positional_encoding(d_model, max_len)
+        super().__init__()
+        encoding = self.create_positional_encoding(d_model, max_len)
+        self.register_buffer('encoding', encoding)  # Proper buffer registration
 
     def create_positional_encoding(self, d_model, max_len):
         position = torch.arange(0, max_len).unsqueeze(1).float()
@@ -36,7 +37,7 @@ class PositionalEncoding(nn.Module):
             x = x[:, :seq_len, :]  # Trim input tensor to match the maximum sequence length
         
         # Add positional encoding to the input tensor
-        positional_encoding = self.encoding[:seq_len, :].unsqueeze(0).expand(batch_size, -1, -1)
+        positional_encoding = self.encoding[:seq_len, :].unsqueeze(0).expand(batch_size, -1, -1).to(x.device) 
         x_with_pos_encoding = x + positional_encoding
 
         return x_with_pos_encoding
