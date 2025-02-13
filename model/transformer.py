@@ -32,51 +32,33 @@ class Transformer(nn.Module):
 
 
     def generate_text(self, start_phrase, start_token, end_token, vocab, vocab_invers, max_length=50):
-        """
-        Generate text using the Transformer model with token indices.
+        self.eval()
+        # Start with only start token
+        tokens = [start_token]
         
-        Args:
-            start_phrase (str): Initial text to start generation
-            start_token (int): Index of the start token
-            end_token (int): Index of the end token
-            vocab (dict): Dictionary mapping tokens to indices
-            vocab_invers (dict): Dictionary mapping indices to tokens
-            max_length (int): Maximum length of generated sequence
+        # Convert start phrase to tokens (without special tokens)
+        initial_tokens = [vocab.get(token, vocab['<unk>']) 
+                        for token in start_phrase.split() 
+                        if token not in ['<s>', '</s>']]
         
-        Returns:
-            str: Generated text
-        """
-        self.eval()  # Set model to evaluation mode
-        
-        # Initialize with start token and tokenize start phrase
-        tokens = [start_token] + [vocab.get(token, vocab['<unk>']) 
-                                for token in start_phrase.split()]
-        
+        tokens += initial_tokens
         input_tensor = torch.tensor([tokens], device=self.device)
         
-        generated_indices = tokens[:]
-        
-        with torch.no_grad():
-            for _ in range(max_length - len(tokens)):
-                # Generate next token probabilities
-                output = self.forward(input_tensor, input_tensor)
+        for _ in range(max_length - len(tokens)):
+            output = self.forward(input_tensor, input_tensor)
+            next_token = torch.argmax(output[0, -1, :]).item()
+            
+            if next_token == end_token:
+                break
                 
-                # Get the most likely next token
-                next_token_logits = output[:, -1, :]
-                next_token = torch.argmax(next_token_logits, dim=-1).item()
-                
-                # Break if end token is generated
-                if next_token == end_token:
-                    break
-                    
-                # Add the predicted token to the sequence
-                generated_indices.append(next_token)
-                input_tensor = torch.cat([input_tensor, 
-                                        torch.tensor([[next_token]], device=self.device)], 
-                                    dim=1)
+            tokens.append(next_token)
+            input_tensor = torch.cat([
+                input_tensor,
+                torch.tensor([[next_token]], device=self.device)
+            ], dim=1)
         
-        # Convert indices back to tokens, excluding the start token
-        generated_tokens = [vocab_invers[idx] for idx in generated_indices[1:]]
+        # Filter out padding and special tokens
+        filtered = [vocab_invers[idx] for idx in tokens 
+                if idx not in [vocab['<pad>'], start_token, end_token]]
         
-        # Join tokens to create final text
-        return ' '.join(generated_tokens)
+        return ' '.join(filtered)

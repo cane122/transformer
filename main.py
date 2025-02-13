@@ -21,20 +21,22 @@ class CustomDataset(torch.utils.data.Dataset):
     
     def __len__(self):
         return len(self.data)
-    
+
     def __getitem__(self, index):
         data_point = self.data[index]
-        tokens = self.tokenizer(data_point)
+        tokens = [self.start_token] + self.tokenizer(data_point) + [self.end_token]
         
-        # Convert tokens to indices using vocabulary
         indexed_tokens = [self.vocab.get(token, self.vocab['<unk>']) for token in tokens]
         
-        # Pad or truncate to max_seq_length
-        indexed_tokens = indexed_tokens[:self.max_seq_length] + [self.vocab['<pad>']] * (self.max_seq_length - len(indexed_tokens))
+        # Truncate first if too long
+        if len(indexed_tokens) > self.max_seq_length:
+            indexed_tokens = indexed_tokens[:self.max_seq_length-1] + [self.vocab[self.end_token]]
         
-        return torch.tensor(indexed_tokens, dtype=torch.long)  # Convert tokens to integer tensor
-
-
+        # Pad with actual pad tokens
+        padding = [self.vocab['<pad>']] * (self.max_seq_length - len(indexed_tokens))
+        indexed_tokens += padding
+        
+        return torch.tensor(indexed_tokens, dtype=torch.long)
 
 from collections import Counter
 
@@ -72,8 +74,8 @@ def main():
         print("GPU not available. Using CPU.")
 
     # Define hyperparameters and model parameters
-    num_layers = 12
-    d_model = 128
+    num_layers = 6
+    d_model = 256
     num_heads = 8
     d_ff = 256
     drop_prob = 0.01
@@ -116,7 +118,7 @@ def main():
 
             # Reshape output and calculate loss
             output_flattened = output.view(-1, output.size(-1))
-            loss = F.cross_entropy(output_flattened, target)
+            loss = F.cross_entropy(output_flattened, target, ignore_index=vocabulary['<pad>'] )
 
             # Backward pass and optimization
             optimizer.zero_grad()
