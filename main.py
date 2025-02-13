@@ -89,6 +89,10 @@ def main():
         lines = file.readlines()
     data = [line.strip() for line in lines]
     vocabulary = create_vocabulary(data, tokenizer)
+    # After creating the vocabulary in the training script
+    with open('vocabulary.txt', 'w') as f:
+        f.write(str(vocabulary))  # Save the vocabulary dictionary as a string
+
     input_vocab_size = len(vocabulary)
     dataset = CustomDataset(data, tokenizer, max_seq_length, start_token, end_token, vocabulary)
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
