@@ -79,6 +79,7 @@ def main():
     num_heads = 8
     d_ff = 256
     drop_prob = 0.01
+    lr = 0.0001
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
@@ -92,7 +93,10 @@ def main():
     # After creating the vocabulary in the training script
     with open('vocabulary.txt', 'w') as f:
         f.write(str(vocabulary))  # Save the vocabulary dictionary as a string
-
+    def create_inverse_vocabulary(vocabulary):
+        inverse_vocabulary = {value: key for key, value in vocabulary.items()}
+        return inverse_vocabulary   
+    vocab_invers = create_inverse_vocabulary(vocabulary)
     input_vocab_size = len(vocabulary)
     dataset = CustomDataset(data, tokenizer, max_seq_length, start_token, end_token, vocabulary)
     dataloader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=num_workers)
@@ -100,15 +104,14 @@ def main():
     # Initialize your Transformer model and move it to GPU if available
     transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
     transformer.to(device)
-
-    # Initialize your TokenEmbedding with the appropriate vocab_size and d_model
-    token_embedding = TokenEmbedding(input_vocab_size, d_model)
     # Define the Adam optimizer
-    optimizer = Adam(transformer.parameters(), lr=0.001)
+    optimizer = Adam(transformer.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     # Training loop
     num_epochs = 500  # Adjust as needed
     for epoch in range(num_epochs):
+        transformer.train()
         total_loss = 0.0
         for batch in dataloader:
             batch = batch.to(device)  # Move token indices to device
@@ -127,20 +130,25 @@ def main():
             # Backward pass and optimization
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(transformer.parameters(), 1.0)
             optimizer.step()
 
             total_loss += loss.item()
 
+        scheduler.step(total_loss)
+        transformer.eval()
+
         average_loss = total_loss / len(dataloader)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {average_loss:.4f}")
+        with torch.no_grad():
+            test_output = transformer.generate_text("Cat", vocabulary['<s>'], 
+                                                   vocabulary['</s>'], vocabulary,
+                                                   vocab_invers, 20)
+            print(f"Epoch {epoch+1} | Loss: {total_loss/len(dataloader):.4f} | Sample: {test_output}")
 
     # Convert start and end tokens to their corresponding indices using vocabulary mapping
     start_token_index = vocabulary['<s>']  # Replace '<s>' with your actual start token
     end_token_index = vocabulary['</s>']  # Replace '</s>' with your actual end token
-    def create_inverse_vocabulary(vocabulary):
-        inverse_vocabulary = {value: key for key, value in vocabulary.items()}
-        return inverse_vocabulary   
-    vocab_invers = create_inverse_vocabulary(vocabulary)
     # Generate text
     generated_text = transformer.generate_text("</s> Cat",start_token_index, end_token_index, vocabulary, vocab_invers, max_length=50)
     print("Generated Text:", generated_text)

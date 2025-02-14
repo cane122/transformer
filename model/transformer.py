@@ -31,34 +31,42 @@ class Transformer(nn.Module):
         return output
 
 
-    def generate_text(self, start_phrase, start_token, end_token, vocab, vocab_invers, max_length=50):
+    def generate_text(self, start_phrase, start_token_idx, end_token_idx, vocab, vocab_invers, max_length=50):
         self.eval()
-        # Start with only start token
-        tokens = [start_token]
+        # Start with the start token (as an integer)
+        tokens = [start_token_idx]
         
-        # Convert start phrase to tokens (without special tokens)
-        initial_tokens = [vocab.get(token, vocab['<unk>']) 
-                        for token in start_phrase.split() 
-                        if token not in ['<s>', '</s>']]
-        
+        # Convert start_phrase (a string) into a list of token indices
+        initial_tokens = [vocab.get(token, vocab['<unk>']) for token in start_phrase.split()]
         tokens += initial_tokens
+        
+        # Create the input tensor from tokens (all are ints)
         input_tensor = torch.tensor([tokens], device=self.device)
         
+        # This list will store generated token indices
+        generated = []
+        
         for _ in range(max_length - len(tokens)):
-            output = self.forward(input_tensor, input_tensor)
+            # Use the model to get the next token logits (using teacher forcing with all but last token)
+            output = self.forward(input_tensor, input_tensor[:, :-1])
             next_token = torch.argmax(output[0, -1, :]).item()
             
-            if next_token == end_token:
+            # Stop if the end token is produced
+            if next_token == end_token_idx:
                 break
-                
-            tokens.append(next_token)
+            
+            # If it's not a special token, add to generated list
+            if next_token not in [vocab['<pad>'], start_token_idx, end_token_idx]:
+                generated.append(next_token)
+            
+            # Append the new token to input_tensor for further generation
             input_tensor = torch.cat([
                 input_tensor,
                 torch.tensor([[next_token]], device=self.device)
             ], dim=1)
         
-        # Filter out padding and special tokens
-        filtered = [vocab_invers[idx] for idx in tokens 
-                if idx not in [vocab['<pad>'], start_token, end_token]]
+        # Convert generated token indices to tokens (strings)
+        # No need to filter again if you already skipped special tokens
+        generated_tokens = [vocab_invers[idx] for idx in generated]
         
-        return ' '.join(filtered)
+        return ' '.join(generated_tokens)
