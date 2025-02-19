@@ -75,11 +75,10 @@ def main():
 
     # Define hyperparameters and model parameters
     num_layers = 6
-    d_model = 256
+    d_model = 128
     num_heads = 8
     d_ff = 256
     drop_prob = 0.01
-    lr = 0.0001
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
@@ -105,11 +104,10 @@ def main():
     transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
     transformer.to(device)
     # Define the Adam optimizer
-    optimizer = Adam(transformer.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+    optimizer = Adam(transformer.parameters())
 
     # Training loop
-    num_epochs = 500  # Adjust as needed
+    num_epochs = 2500  # Adjust as needed
     for epoch in range(num_epochs):
         transformer.train()
         total_loss = 0.0
@@ -130,12 +128,10 @@ def main():
             # Backward pass and optimization
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(transformer.parameters(), 1.0)
             optimizer.step()
 
             total_loss += loss.item()
 
-        scheduler.step(total_loss)
         transformer.eval()
 
         average_loss = total_loss / len(dataloader)
