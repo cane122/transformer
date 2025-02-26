@@ -1,0 +1,17 @@
+{
+    "source": [
+      "I love my friend",
+      "the cat is small",
+      "please give me the book",
+      "I want to sleep",
+      "today is beautiful"
+    ],
+    "target": [
+      "volim svog prijatelja",
+      "mačka je mala",
+      "molim te daj mi knjigu",
+      "želim da spavam",
+      "danas je lepo"
+    ]
+  }
+  

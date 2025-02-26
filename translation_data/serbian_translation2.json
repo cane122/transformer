@@ -1,0 +1,47 @@
+{
+    "source": [
+      "hello",
+      "goodbye",
+      "hello my friend",
+      "good morning",
+      "good night",
+      "I love my cat",
+      "the dog is big",
+      "the house is small",
+      "I want to eat",
+      "I need water",
+      "the book is good",
+      "my car is beautiful",
+      "thank you for your help",
+      "the computer is small",
+      "tomorrow is a good day",
+      "the woman reads a book",
+      "the man works today",
+      "the child sleeps at night",
+      "give me water please",
+      "the family is happy"
+    ],
+    "target": [
+      "zdravo",
+      "doviđenja",
+      "zdravo prijatelju",
+      "dobro jutro",
+      "laku noć",
+      "volim svoju mačku",
+      "pas je velik",
+      "kuća je mala",
+      "želim da jedem",
+      "treba mi voda",
+      "knjiga je dobra",
+      "moj automobil je lep",
+      "hvala ti na pomoći",
+      "računar je mali",
+      "sutra je dobar dan",
+      "žena čita knjigu",
+      "čovek radi danas",
+      "dete spava noću",
+      "molim te, daj mi vodu",
+      "porodica je srećna"
+    ]
+  }
+  

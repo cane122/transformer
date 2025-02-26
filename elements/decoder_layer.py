@@ -4,8 +4,9 @@ from layers.multihead_attention import MultiHeadAttention
 from layers.layer_normalization import LayerNormalization
 from layers.positionwise_feed_forward import PositionwiseFeedForward
 
-class DecoderLayer:
+class DecoderLayer(nn.Module):
     def __init__(self, d_model, num_heads, d_ff, drop_prob, device):
+        super(DecoderLayer, self).__init__()
         self.self_attention = MultiHeadAttention(d_model, num_heads, device)
         self.encoder_decoder_attention = MultiHeadAttention(d_model, num_heads, device)
         self.feed_forward = PositionwiseFeedForward(d_model, d_ff, device)

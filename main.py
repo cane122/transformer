@@ -74,18 +74,19 @@ def main():
         print("GPU not available. Using CPU.")
 
     # Define hyperparameters and model parameters
-    num_layers = 6
+    num_layers = 2
     d_model = 128
     num_heads = 8
     d_ff = 256
-    drop_prob = 0.01
+    drop_prob = 0
+    lr = 0.001
     num_workers = 8  # You can adjust this based on your system's capabilities
     # Load your dataset using the custom DataLoader with multiple workers
     tokenizer = simple_tokenizer  # Replace with your actual tokenizer
     start_token = '<s>'
     end_token = '</s>'
     max_seq_length = 50
-    with open("training_set/cats.txt", 'r', encoding='utf-8') as file:
+    with open("training_set/dummy.txt", 'r', encoding='utf-8') as file:
         lines = file.readlines()
     data = [line.strip() for line in lines]
     vocabulary = create_vocabulary(data, tokenizer)
@@ -104,10 +105,10 @@ def main():
     transformer = Transformer(num_layers, d_model, num_heads, d_ff, input_vocab_size, input_vocab_size, max_seq_length, drop_prob, device)
     transformer.to(device)
     # Define the Adam optimizer
-    optimizer = Adam(transformer.parameters())
+    optimizer = Adam(transformer.parameters(), lr=lr)
 
     # Training loop
-    num_epochs = 2500  # Adjust as needed
+    num_epochs = 10000  # Adjust as needed
     for epoch in range(num_epochs):
         transformer.train()
         total_loss = 0.0
@@ -141,6 +142,8 @@ def main():
                                                    vocabulary['</s>'], vocabulary,
                                                    vocab_invers, 20)
             print(f"Epoch {epoch+1} | Loss: {total_loss/len(dataloader):.4f} | Sample: {test_output}")
+        if average_loss < 0.01:
+            break
 
     # Convert start and end tokens to their corresponding indices using vocabulary mapping
     start_token_index = vocabulary['<s>']  # Replace '<s>' with your actual start token
